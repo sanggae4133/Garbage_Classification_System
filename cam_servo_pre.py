@@ -251,6 +251,8 @@ def on_button_click():
         cv2.waitKey(10000)
         cv2.destroyWindow('Frozen Frame')
 
+    isFreeze = 0
+
 # 메인 함수
 if __name__ == '__main__':
     try:
