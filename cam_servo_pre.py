@@ -232,7 +232,7 @@ def predict_frame(frame, isServo):
         draw.text((xmin, ymin - (text_bbox[3] - text_bbox[1])), label_text, fill="black", font=font)
 
         if isServo == 1:
-            operate_servo(label_text)
+            operate_servo(results.names[int(label)])
 
     return np.array(img)
 
