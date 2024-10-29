@@ -245,11 +245,11 @@ def on_button_click():
         predict_frame(frame, 1)
         
         # 메시지 텍스트를 즉시 업데이트하고 메인 이벤트 루프를 유지합니다.
-        update_message("뚜껑이 열립니다! 10초 후에 닫힙니다.")
+        root.after(0,lambda: update_message("뚜껑이 열립니다! 10초 후에 닫힙니다."))
 
         time.sleep(10)
 
-        update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.")
+        root.after(0,lambda: update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다."))
 
     isFreeze = 0
 
