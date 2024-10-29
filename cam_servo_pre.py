@@ -23,7 +23,7 @@ SERVO_PIN_MAP = {
 }
 
 CATEGORY_MAP = {
-    "Cup": "plastic",
+    "Cup": "garbage",
     "Carton": "paper",
     "Styrofoam piece": "plastic",
     "Plastic gloves": "plastic",
@@ -52,7 +52,7 @@ CATEGORY_MAP = {
 }
 
 label_mapping = {
-    "Cup": "컵",
+    "Cup": "컵(도자기)",
     "Carton": "종이박스",
     "Styrofoam piece": "스티로폼",
     "Plastic gloves": "비닐 장갑",
@@ -63,21 +63,50 @@ label_mapping = {
     "Plastic bag & wrapper": "플라스틱 포장지",
     "Paper": "종이",
     "Can": "캔",
-    "Lid": "뚜껑",
+    "Lid": "플라스틱 뚜껑",
     "Plastic container": "플라스틱 용기",
-    "Plastic utensils": "플라스틱 식기",
+    "Plastic utensils": "플라스틱 일회용 식기",
     "Bottle cap": "병 뚜껑",
     "Paper bag": "종이 가방",
     "Rope & strings": "로프 및 끈",
     "Food waste": "음식물 쓰레기",
     "Scrap metal": "고철",
-    "Bottle": "병",
-    "Glass jar": "유리병",
+    "Bottle": "플라스틱 병",
+    "Glass jar": "유리 단지",
     "Squeezable tube": "짜는 튜브",
     "Aluminium foil": "알루미늄 호일",
     "Clear plastic bottle": "투명 플라스틱 병",
     "Other plastic bottle": "기타 플라스틱 병",
     "Glass bottle": "유리병"
+}
+
+advice_mapping = {
+    "Cup": "도자기 컵은 깨졌을 경우 신문지로 감싸 버려주세요",
+    "Carton": "종이박스는 접어서 부피를 줄여 버려주세요",
+    "Styrofoam piece": "스티로폼은 깨끗히 닦아 조각내 버려주세요",
+    "Plastic gloves": "비닐 장갑은 플라스틱에 버려주세요",
+    "Broken glass": "깨진 유리는 신문지로 감싸 버려주세요",
+    "Battery": "폐건전지는 가능한 전용 수거함에 버려주세요\n\'스마트 서울 앱\'에서 근처 전용 수거함을 확인할 수 있습니다",
+    "Straw": "빨대는 깨끗히 닦아 버려주세요",
+    "Blister pack": "약 껍질은 플라스틱과 호일 분리가 어렵다면 일반쓰레기로 배출해주세요",
+    "Plastic bag & wrapper": "플라스틱 포장지는 플라스틱에 버려주세요",
+    "Paper": "종이는 부피를 줄여 접어 버려주세요",
+    "Can": "캔은 구겨서 버려주세요",
+    "Lid": "플라스틱 뚜껑은 플라스틱에 버려주세요",
+    "Plastic container": "플라스틱 용기는 깨끗히 씻어 버려주세요",
+    "Plastic utensils": "플라스틱 식기는 깨끗히 씻어 버려주세요",
+    "Bottle cap": "병 뚜껑은 깨끗히 씻어 버려주세요",
+    "Paper bag": "종이 가방은 접어 부피를 줄여 버려주세요",
+    "Rope & strings": "로프 및 끈은 재질별로 분리해 잘게 잘라 버려주세요",
+    "Food waste": "음식물 쓰레기는 음식물 쓰레기 전용에 버려주세요",
+    "Scrap metal": "고철은 캔에 버려주세요",
+    "Bottle": "플라스틱 병은 플라스틱에 버려주세요",
+    "Glass jar": "유리 단지가 깨졌다면 신문지로 감싸 버려주세요",
+    "Squeezable tube": "짜는 튜브는 내용물을 모두 비우고 일반쓰레기에 버려주세요",
+    "Aluminium foil": "알루미늄 호일은 깨끗히 씻어 캔에 버려주세요",
+    "Clear plastic bottle": "투명 플라스틱 병은 라벨을 분리하고 깨끗히 씻어 구겨서 버려주세요",
+    "Other plastic bottle": "기타 플라스틱 병은 라벨을 분리하고 깨끗히 씻어 구겨서 버려주세요",
+    "Glass bottle": "유리병이 깨졌다면 신문지로 감싸 버려주세요"
 }
 
 SERVO_MAX_DUTY = 12
@@ -104,7 +133,6 @@ def setServoPos(servo, degree):
 def operate_servo(category):
     servo_type = CATEGORY_MAP.get(category)
     pin = SERVO_PIN_MAP.get(servo_type)
-    print("operate servo()!", category, servo_type, pin)
     if pin in servo_motors:
         print(f"Operating servo for {category} ({servo_type}) on pin {pin}")
         
@@ -123,35 +151,6 @@ class Camera:
         self.opened = True
         self.thread = threading.Thread(target=self.camera_task, daemon=True)
         self.thread.start()
-
-    '''
-    def camera_task(self):
-        while self.opened:
-            ret, frame = self.cap.read()
-            if ret:
-                self.frame = self.draw_predictions(frame)
-            time.sleep(0.01)
-
-    def draw_predictions(self, frame):
-        img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-        results = model(img)
-        boxes = results.xyxy[0][:, :4].cpu().numpy()
-        labels = results.xyxy[0][:, -1].cpu().numpy()
-
-        draw = ImageDraw.Draw(img)
-        for box, label in zip(boxes, labels):
-            xmin, ymin, xmax, ymax = box
-            color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-            label_text = label_mapping.get(results.names[int(label)], "Unknown")
-            draw.rectangle([xmin, ymin, xmax, ymax], outline=color, width=3)
-            draw.text((xmin, ymin), label_text, fill="black")
-
-        return np.array(img)
-
-    def release(self):
-        self.opened = False
-        self.cap.release()
-    '''
 
     def camera_open(self, correction=False):
         try:
@@ -206,7 +205,7 @@ class Camera:
                 print('Error capturing camera frame:', e)
                 time.sleep(0.01)
 
-def predict_frame(frame, isServo):
+def predict_frame(frame, isServo, advice_message):
     img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     results = model(img)
     boxes = results.xyxy[0][:, :4].cpu().numpy()
@@ -232,6 +231,8 @@ def predict_frame(frame, isServo):
         draw.text((xmin, ymin - (text_bbox[3] - text_bbox[1])), label_text, fill="black", font=font)
 
         if isServo == 1:
+            # 메시지 리스트에 조언 메시지 추가
+            advice_message.append(advice_mapping[results.names[int(label)]])
             operate_servo(results.names[int(label)])
 
     return np.array(img)
@@ -246,10 +247,14 @@ def on_button_click():
     set_freeze(1)
 
     if frame is not None:
-        predict_frame(frame, 1)
+        advice_message = []
+
+        predict_frame(frame, 1, advice_message)
         
-        # 텍스트를 즉시 업데이트하고 메인 이벤트 루프가 멈추지 않도록 처리
-        update_message("뚜껑이 열립니다! 10초 후에 닫힙니다.")
+        # 메시지를 줄바꿈으로 구분하여 출력
+        full_message = "뚜껑이 열립니다! 10초 후에 닫힙니다.\n" + "\n".join(advice_message)
+        update_message(full_message)
+
 
         # 10초 후 원래 메시지로 복구
         root.after(10000, reset_message)
