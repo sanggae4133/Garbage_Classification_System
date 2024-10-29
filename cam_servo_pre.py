@@ -244,21 +244,28 @@ def on_button_click():
     if frame is not None:
         predict_frame(frame, 1)
         
-        # 메시지 텍스트를 즉시 업데이트하고 메인 이벤트 루프를 유지합니다.
-        root.after(0,lambda: update_message("뚜껑이 열립니다! 10초 후에 닫힙니다."))
+        # 텍스트를 즉시 업데이트하고 메인 이벤트 루프가 멈추지 않도록 처리
+        update_message("뚜껑이 열립니다! 10초 후에 닫힙니다.")
 
-        # time.sleep(10)
+        # 10초 후 원래 메시지로 복구
+        root.after(10000, reset_message)
 
-
-
-        root.after(10000,lambda: update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다."))
-
-    isFreeze = 0
+    # isFreeze를 10초 후에 해제
+    root.after(10000, lambda: set_freeze(0))
 
 # 메시지 텍스트 업데이트 함수
 def update_message(text):
     global message_label
     message_label.config(text=text)
+
+# 메시지를 원래 상태로 복구하는 함수
+def reset_message():
+    update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.")
+
+# isFreeze 값을 설정하는 함수
+def set_freeze(value):
+    global isFreeze
+    isFreeze = value
 
 # 메인 함수
 if __name__ == '__main__':
