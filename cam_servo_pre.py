@@ -277,7 +277,7 @@ def on_button_click():
             currentServoPinList = list(currentServoPinList)
         
             # 메시지를 줄바꿈으로 구분하여 출력
-            full_message = "뚜껑이 열립니다! 10초 후에 닫힙니다.\n" + "\n".join(adviceMsgList)
+            full_message = "[감지된 쓰레기의 분리수거 방법]\n" + "\n".join(adviceMsgList)
             update_message(full_message)
 
             for pin in currentServoPinList:
@@ -287,7 +287,7 @@ def on_button_click():
         for pin in currentServoPinList:
             close_servo(pin)
         currentServoPinList = []
-        update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.")
+        update_message("버튼을 누르면 감지된 쓰레기통 뚜껑이 열립니다.")
         isFreeze = 0
 
 # 메시지 텍스트 업데이트 함수
@@ -311,7 +311,7 @@ if __name__ == '__main__':
         test_button = Button(root, text="뚜껑 작동", command=on_button_click)
         test_button.pack(pady=20)
 
-        message_label = Label(root, text="버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.", font=("Arial", 12))
+        message_label = Label(root, text="버튼을 누르면 감지된 쓰레기통 뚜껑이 열립니다.", font=("Arial", 12))
         message_label.pack()
 
         isFreeze = 0
