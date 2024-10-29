@@ -106,9 +106,12 @@ def operate_servo(category):
     pin = SERVO_PIN_MAP.get(servo_type)
     if pin in servo_motors:
         print(f"Operating servo for {category} ({servo_type}) on pin {pin}")
+        
+        # 서보모터를 90도로 이동
         setServoPos(servo_motors[pin], 90)
-        time.sleep(1)
-        setServoPos(servo_motors[pin], 0)
+
+        # 10초 후 서보모터를 0도로 복귀
+        root.after(10000, lambda: setServoPos(servo_motors[pin], 0))
 
 # 카메라 클래스
 class Camera:
@@ -239,7 +242,7 @@ def on_button_click():
     global isFreeze
 
     frame = camera.frame
-    isFreeze = 1
+    set_freeze(1)
 
     if frame is not None:
         predict_frame(frame, 1)
