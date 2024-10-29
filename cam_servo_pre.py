@@ -236,9 +236,13 @@ def predict_frame(frame, isServo):
 # 버튼 클릭 이벤트
 def on_button_click():
     global camera
+    global isFreeze
+
     frame = camera.frame
+    isFreeze = 1
+
     if frame is not None:
-        predicted_category = predict_frame(frame)
+        predicted_category = predict_frame(frame, 1)
         if predicted_category:
             print(f"Predicted: {predicted_category}")
             operate_servo(predicted_category)
@@ -265,11 +269,13 @@ if __name__ == '__main__':
         message_label = Label(root, text="Press the button to operate servo", font=("Arial", 12))
         message_label.pack()
 
+        isFreeze = 0
+
         def display_camera():
             while True:
                 frame = camera.frame
-                if frame is not None:
-                    result_frame = predict_frame(frame)
+                if frame is not None and isFreeze == 0:
+                    result_frame = predict_frame(frame, 0)
                     cv2.imshow('YOLOv5 Predictions', cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR))
                     if cv2.waitKey(1) == 27:
                         break
