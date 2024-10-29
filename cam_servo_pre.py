@@ -242,14 +242,8 @@ def on_button_click():
     isFreeze = 1
 
     if frame is not None:
-        predicted_category = predict_frame(frame, 1)
-        if predicted_category:
-            print(f"Predicted: {predicted_category}")
-            operate_servo(predicted_category)
-
-        cv2.imshow('Frozen Frame', frame)
-        cv2.waitKey(10000)
-        cv2.destroyWindow('Frozen Frame')
+        predict_frame(frame, 1)
+        time.sleep(10)
 
     isFreeze = 0
 
@@ -262,13 +256,13 @@ if __name__ == '__main__':
         camera.camera_open()
 
         root = Tk()
-        root.title("Servo Motor Control")
+        root.title("쓰레기통 컨트롤러")
         root.geometry("300x200")
 
-        test_button = Button(root, text="Test Servo Operation", command=on_button_click)
+        test_button = Button(root, text="뚜껑 작동", command=on_button_click)
         test_button.pack(pady=20)
 
-        message_label = Label(root, text="Press the button to operate servo", font=("Arial", 12))
+        message_label = Label(root, text="버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.", font=("Arial", 12))
         message_label.pack()
 
         isFreeze = 0
