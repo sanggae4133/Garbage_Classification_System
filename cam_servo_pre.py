@@ -142,6 +142,14 @@ def operate_servo(category):
         # 10초 후 서보모터를 0도로 복귀
         root.after(10000, lambda: setServoPos(servo_motors[pin], 0))
 
+def open_servo(pin):
+    if pin in servo_motors:
+        setServoPos(servo_motors[pin], 90)
+
+def close_servo(pin):
+    if pin in servo_motors:
+        setServoPos(servo_motors[pin], 0)
+
 # 카메라 클래스
 class Camera:
     def __init__(self, resolution=(640, 480)):
@@ -205,7 +213,7 @@ class Camera:
                 print('Error capturing camera frame:', e)
                 time.sleep(0.01)
 
-def predict_frame(frame, isServo, advice_message):
+def predict_frame(frame, isServo, label_list):
     img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
     results = model(img)
     boxes = results.xyxy[0][:, :4].cpu().numpy()
@@ -232,8 +240,9 @@ def predict_frame(frame, isServo, advice_message):
 
         if isServo == 1:
             # 메시지 리스트에 조언 메시지 추가
-            advice_message.append(advice_mapping[results.names[int(label)]])
-            operate_servo(results.names[int(label)])
+            #advice_message.append(advice_mapping[results.names[int(label)]])
+            #operate_servo(results.names[int(label)])
+            label_list.append(results.names[int(label)])
 
     return np.array(img)
 
@@ -242,39 +251,50 @@ def predict_frame(frame, isServo, advice_message):
 def on_button_click():
     global camera
     global isFreeze
+    global currentServoPinList
 
     frame = camera.frame
-    set_freeze(1)
 
-    if frame is not None:
-        advice_message = []
+    if isFreeze == 0:
+        isFreeze = 1
 
-        predict_frame(frame, 1, advice_message)
+        if frame is not None:
+            labelList = []
+            adviceMsgList = []
+
+            predict_frame(frame, 1, labelList)
+
+            for label in labelList:
+                adviceMsgList.append(advice_mapping[label])
+
+                servo_type = CATEGORY_MAP.get(label)
+                pin = SERVO_PIN_MAP.get(servo_type)
+                currentServoPinList.append(pin)
+            
+            adviceMsgList = set(adviceMsgList)
+            adviceMsgList = list(adviceMsgList)
+            currentServoPinList = set(currentServoPinList)
+            currentServoPinList = list(currentServoPinList)
         
-        # 메시지를 줄바꿈으로 구분하여 출력
-        full_message = "뚜껑이 열립니다! 10초 후에 닫힙니다.\n" + "\n".join(advice_message)
-        update_message(full_message)
+            # 메시지를 줄바꿈으로 구분하여 출력
+            full_message = "뚜껑이 열립니다! 10초 후에 닫힙니다.\n" + "\n".join(adviceMsgList)
+            update_message(full_message)
 
+            for pin in currentServoPinList:
+                open_servo(pin)
 
-        # 10초 후 원래 메시지로 복구
-        root.after(10000, reset_message)
-
-    # isFreeze를 10초 후에 해제
-    root.after(10000, lambda: set_freeze(0))
+    else:
+        for pin in currentServoPinList:
+            close_servo(pin)
+        currentServoPinList = []
+        update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.")
+        isFreeze = 0
 
 # 메시지 텍스트 업데이트 함수
 def update_message(text):
     global message_label
     message_label.config(text=text)
 
-# 메시지를 원래 상태로 복구하는 함수
-def reset_message():
-    update_message("버튼을 누르면 10초 동안 해당하는 쓰레기통 뚜껑이 열립니다.")
-
-# isFreeze 값을 설정하는 함수
-def set_freeze(value):
-    global isFreeze
-    isFreeze = value
 
 # 메인 함수
 if __name__ == '__main__':
@@ -295,6 +315,8 @@ if __name__ == '__main__':
         message_label.pack()
 
         isFreeze = 0
+
+        currentServoPinList = []
 
         def display_camera():
             while True:
