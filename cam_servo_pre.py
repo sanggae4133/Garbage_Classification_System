@@ -300,7 +300,7 @@ if __name__ == '__main__':
             while True:
                 frame = camera.frame
                 if frame is not None and isFreeze == 0:
-                    result_frame = predict_frame(frame, 0)
+                    result_frame = predict_frame(frame, 0, None)
                     cv2.imshow('YOLOv5 Predictions', cv2.cvtColor(result_frame, cv2.COLOR_RGB2BGR))
                     if cv2.waitKey(1) == 27:
                         break
