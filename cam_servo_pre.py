@@ -104,6 +104,7 @@ def setServoPos(servo, degree):
 def operate_servo(category):
     servo_type = CATEGORY_MAP.get(category)
     pin = SERVO_PIN_MAP.get(servo_type)
+    print("operate servo()!", category, servo_type, pin)
     if pin in servo_motors:
         print(f"Operating servo for {category} ({servo_type}) on pin {pin}")
         
