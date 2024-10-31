@@ -151,69 +151,6 @@ def close_servo(pin):
         setServoPos(servo_motors[pin], 0)
 
 # 카메라 클래스
-'''
-class Camera:
-    def __init__(self, resolution=(640, 480)):
-        self.cap = cv2.VideoCapture(0)
-        self.width, self.height = resolution
-        self.frame = None
-        self.opened = True
-        self.thread = threading.Thread(target=self.camera_task, daemon=True)
-        self.thread.start()
-
-    def camera_open(self, correction=False):
-        try:
-            self.cap = cv2.VideoCapture(-1)
-            self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('Y', 'U', 'Y', 'V'))
-            self.cap.set(cv2.CAP_PROP_FPS, 30)
-            self.cap.set(cv2.CAP_PROP_SATURATION, 40)
-            self.correction = correction
-            self.opened = True
-        except Exception as e:
-            print('Error opening camera:', e)
-
-    def camera_close(self):
-        try:
-            self.opened = False
-            time.sleep(0.2)
-            if self.cap is not None:
-                self.cap.release()
-                time.sleep(0.05)
-            self.cap = None
-        except Exception as e:
-            print('Error closing camera:', e)
-
-    def camera_task(self):
-        while True:
-            try:
-                if self.opened and self.cap.isOpened():
-                    ret, frame_tmp = self.cap.read()
-                    if ret:
-                        frame_resize = cv2.resize(frame_tmp, (self.width, self.height), interpolation=cv2.INTER_NEAREST)
-
-                        if self.correction:
-                            self.frame = cv2.remap(frame_resize, self.map1, self.map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-                        else:
-                            self.frame = frame_resize
-                    else:
-                        self.frame = None
-                        self.cap.release()
-                        cap = cv2.VideoCapture(-1)
-                        ret, _ = cap.read()
-                        if ret:
-                            self.cap = cap
-                elif self.opened:
-                    self.cap.release()
-                    cap = cv2.VideoCapture(-1)
-                    ret, _ = cap.read()
-                    if ret:
-                        self.cap = cap
-                else:
-                    time.sleep(0.01)
-            except Exception as e:
-                print('Error capturing camera frame:', e)
-                time.sleep(0.01)
-'''
 class Camera:
     def __init__(self, resolution=(640, 480)):
         self.cap = None
@@ -243,7 +180,7 @@ class Camera:
             self.correction = correction
             self.opened = True
         except Exception as e:
-            print('打开摄像头失败:', e)
+            print('카메라 오픈 에러 발생:', e)
 
     def camera_close(self):
         try:
@@ -254,7 +191,7 @@ class Camera:
                 time.sleep(0.05)
             self.cap = None
         except Exception as e:
-            print('关闭摄像头失败:', e)
+            print('카메라 close 에러 발생:', e)
 
     def camera_task(self):
         while True:
@@ -286,7 +223,7 @@ class Camera:
                 else:
                     time.sleep(0.01)
             except Exception as e:
-                print('获取摄像头画面出错:', e)
+                print('카메라 작동 오류:', e)
                 time.sleep(0.01)
 
 def predict_frame(frame, isServo, label_list):
@@ -315,9 +252,6 @@ def predict_frame(frame, isServo, label_list):
         draw.text((xmin, ymin - (text_bbox[3] - text_bbox[1])), label_text, fill="black", font=font)
 
         if isServo == 1:
-            # 메시지 리스트에 조언 메시지 추가
-            #advice_message.append(advice_mapping[results.names[int(label)]])
-            #operate_servo(results.names[int(label)])
             label_list.append(results.names[int(label)])
 
     return np.array(img)
