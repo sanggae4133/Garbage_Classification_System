@@ -332,11 +332,14 @@ if __name__ == '__main__':
         root.title("쓰레기통 컨트롤러")                 # 창 제목 설정
         root.geometry("600x400")                        # 창 크기 설정
 
-        test_button = Button(root, text="뚜껑 작동", command=on_button_click) # 버튼 생성 및 클릭 시 이벤트 연결
-        test_button.pack(pady=20)                       # 버튼을 창에 배치
+        # 버튼 폰트 크기와 패딩 설정
+        button_font = font.Font(size=16, weight="bold")
+        test_button = Button(root, text="뚜껑 작동", command=on_button_click, font=button_font)
+        test_button.pack(pady=40, padx=20)  # 더 넓은 패딩을 추가하여 버튼 크기 확대
 
-        message_label = Label(root, text="버튼을 누르면 감지된 쓰레기통 뚜껑이 열립니다.", font=("Arial", 12)) # 초기 메시지 라벨
-        message_label.pack()                            # 라벨을 창에 배치
+        # 메시지 레이블 폰트 크기 설정
+        message_label = Label(root, text="버튼을 누르면 감지된 쓰레기통 뚜껑이 열립니다.", font=("Arial", 16))
+        message_label.pack(pady=20)  # 레이블의 위아래에 패딩 추가
 
         isFreeze = 0                                    # 프레임 동결 변수 초기화
         currentServoPinList = []                        # 서보모터 핀 리스트 초기화
