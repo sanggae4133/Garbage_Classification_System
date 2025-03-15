@@ -34,12 +34,9 @@ void servo_mv(Servo servo,int move) {
             servo.write(angle);
             delay(MOTOR_SLEEP);
         }
-        //Serial.print("\t");
-        //Serial.println(angle);
         Serial.write('u');
     } 
     else if (move == 1) {   // down
-        //Serial.print("\t-90\t"); 
         for (int i = 0; i < 90; i++) {  
             angle = angle - 1;
             if (angle <= 0) 
@@ -47,29 +44,25 @@ void servo_mv(Servo servo,int move) {
             servo.write(angle);
             delay(MOTOR_SLEEP);
         }
-        //Serial.println(angle);  
         Serial.write('d');
-    } 
-    else {  
-        //Serial.println("wrong character!!");
     }
 }
 
 void loop() {
     if (Serial.available()) {  
         // "u0"
-        char *input = Serial.read(); 
+        String input = Serial.readStringUntill('\n');
+        if (input.length() < 2) {
+            Serial.write("INVALID");
+            return;
+        }
         int mv_type, mt_num;
 
-        if(intput[0] == "u") {
-            mv_type = 0;
-        } 
-        else if(input[0] == 'd') {
-            mv_type = 1;
-        }
+        if(intput[0] == "u") mv_type = 0;
+        else if(input[0] == 'd') mv_type = 1;
         else {
-            mv_type = -1;
-            // Serial.println("Wrrong CHarater!");
+            Serial.write("INVALID");
+            return;
         }
         
         if (input[1] == '0') mt_num = 0;
@@ -82,35 +75,7 @@ void loop() {
         }
         else {
             Serial.write("INVALID");
+            return;
         }
-
-        /*
-        if (input == 'u') {
-            Serial.print("+90");  
-            for (int i = 0; i < 90; i++) {  
-                angle = angle + 1;
-                if (angle > 180) 
-                    angle = 180;
-                servo.write(angle);
-                delay(MOTOR_SLEEP);
-            }
-            Serial.print("\t");
-            Serial.println(angle);
-        } 
-        else if (input == 'd') {
-            Serial.print("\t-90\t"); 
-            for (int i = 0; i < 90; i++) {  
-                angle = angle - 1;
-                if (angle <= 0) 
-                    angle = 0;
-                servo.write(angle);
-                delay(MOTOR_SLEEP);
-            }
-            Serial.println(angle);  
-        } 
-        else {  
-            Serial.println("wrong character!!");
-        }
-        */
     }
 }
