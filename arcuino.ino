@@ -49,33 +49,26 @@ void servo_mv(Servo servo,int move) {
 }
 
 void loop() {
-    if (Serial.available()) {  
-        // "u0"
-        String input = Serial.readStringUntill('\n');
-        if (input.length() < 2) {
-            Serial.write("INVALID");
+    if (Serial.available()) {
+        String input = Serial.readStringUntil('\n'); // 개행 문자('\n')까지 읽기
+        if (input.length() < 2) {  // 최소 두 글자 필요
+            Serial.println("INVALID");
             return;
         }
-        int mv_type, mt_num;
 
-        if(intput[0] == "u") mv_type = 0;
-        else if(input[0] == 'd') mv_type = 1;
-        else {
-            Serial.write("INVALID");
-            return;
-        }
-        
-        if (input[1] == '0') mt_num = 0;
-        else if (input[1] == '1') mt_num = 1;
-        else if (input[1] == '2') mt_num = 2;
-        else mt_num = -1;
+        char cmd = input[0];  // 첫 번째 문자
+        char num = input[1];  // 두 번째 문자
+        int mv_type = -1, mt_num = -1;
+
+        if (cmd == 'u') mv_type = 0;
+        else if (cmd == 'd') mv_type = 1;
+
+        if (num >= '0' && num <= '2') mt_num = num - '0'; // '0' -> 0, '1' -> 1, '2' -> 2
 
         if (mv_type != -1 && mt_num != -1) {
             servo_mv(servo_arr[mt_num], mv_type);
-        }
-        else {
-            Serial.write("INVALID");
-            return;
+        } else {
+            Serial.println("INVALID");
         }
     }
 }
