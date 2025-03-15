@@ -7,8 +7,8 @@ py_serial = serial.Serial(
 )
 
 while True:
-    commend = input('the things you want arduino to do for you:')
-    py_serial.write(commend.encode())
+    commend = input()
+    py_serial.write((commend + '\n').encode())
     time.sleep(0.1)
 
     if py_serial.readable():

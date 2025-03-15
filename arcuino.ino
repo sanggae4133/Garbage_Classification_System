@@ -2,8 +2,6 @@
 
 #define MOTOR_SLEEP 10
 
-//Servo servo;  
-//int motor = 2;  
 int angle = 90; 
 
 Servo servo_arr[3];
@@ -15,17 +13,12 @@ void setup() {
     servo_arr[0].attach(SERVO_PLA);
     servo_arr[1].attach(SERVO_WASTE);
     servo_arr[2].attach(SERVO_PAPER);
-    // servo.attach(motor);
+    
     Serial.begin(9600);  
-
-    //Serial.println("Enter the u or d"); 
-    //Serial.println("u = angle + 90"); 
-    //Serial.println("d = angle - 90\n");
-    // --
-    //servo_arr[0].attach(
+    Serial.println("Ready to receive commands (u0, d1, etc.)");
 }
 
-void servo_mv(Servo servo,int move) {
+void servo_mv(Servo servo, int move) {
     if (move == 0) {    // up
         for (int i = 0; i < 90; i++) {  
             angle = angle + 1;
@@ -51,6 +44,11 @@ void servo_mv(Servo servo,int move) {
 void loop() {
     if (Serial.available()) {
         String input = Serial.readStringUntil('\n'); // 개행 문자('\n')까지 읽기
+        
+        // **입력된 데이터 확인 (디버깅용)**
+        Serial.print("Received: ");
+        Serial.println(input);
+
         if (input.length() < 2) {  // 최소 두 글자 필요
             Serial.println("INVALID");
             return;
@@ -66,6 +64,9 @@ void loop() {
         if (num >= '0' && num <= '2') mt_num = num - '0'; // '0' -> 0, '1' -> 1, '2' -> 2
 
         if (mv_type != -1 && mt_num != -1) {
+            Serial.print("Executing command: ");
+            Serial.print(cmd);
+            Serial.println(num);
             servo_mv(servo_arr[mt_num], mv_type);
         } else {
             Serial.println("INVALID");
