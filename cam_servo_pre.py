@@ -6,10 +6,11 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 import random
-from tkinter import Tk, Button, Label
+from tkinter import Tk, Button, Label, font
 import RPi.GPIO as GPIO
 
 from CameraCalibration.CalibrationConfig import *
+
 
 # Set GPIO mode and servo settings
 GPIO.setmode(GPIO.BCM)
