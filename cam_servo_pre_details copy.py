@@ -12,16 +12,20 @@ import serial
 
 from CameraCalibration.CalibrationConfig import *
 
-# GPIO 모드 설정 및 서보 핀 번호 정의
-GPIO.setmode(GPIO.BCM)
-
-# 각 쓰레기 카테고리에 해당하는 서보 핀 번호를 설정
-SERVO_PIN_MAP = {
-    "garbage": 2,   # 일반쓰레기 서보 핀
-    "plastic": 4,   # 플라스틱 서보 핀
-    "glass": 6,     # 유리 서보 핀
-    "can": 27,      # 캔 서보 핀
-    "paper": 25     # 종이 서보 핀
+UP='u'  # UP 명령어
+DOWN='d'    # DOWN 명령어
+# 아두이노 Serial 통신 설정
+py_serial = serial.Serial(
+    port = '/dev/ttyUSB0',
+    baudrate = 9600,
+)
+# 서보모터 핀 번호 설정
+SERVO_SEQ = {
+    "plastic": 0,
+    "garbage": 1,
+    "paper": 2,
+    "can": 1,   # 3개 기준으로 순서를 맞추기 위해 garbage와 동일한 값으로 설정
+    "glass": 1  # 3개 기준으로 순서를 맞추기 위해 garbage와 동일한 값으로 설정
 }
 
 # 모델에서 분류한 쓰레기 종류를 서보 분류와 연결
@@ -114,50 +118,21 @@ advice_mapping = {
     "Glass bottle": "유리병이 깨졌다면 신문지로 감싸 버려주세요"    # 유리병 분리수거 안내
 }
 
-# 서보모터의 최대 및 최소 듀티 설정 (각 서보 위치 조정을 위한 값 설정)
-SERVO_MAX_DUTY = 12
-SERVO_MIN_DUTY = 3
-
-# 서보모터 객체 저장 딕셔너리
-servo_motors = {}
-
 # YOLOv5 모델 로드 (사전 학습된 YOLOv5 모델을 로드하여 사용할 준비)
 model = torch.hub.load('./yolov5', 'custom', path='./best.pt', source='local')
 
-# 서보모터 초기화 함수 (각 서보모터 핀을 출력 모드로 설정하고 PWM 신호로 제어)
-def initialize_servos():
-    for servo_type, pin in SERVO_PIN_MAP.items():
-        GPIO.setup(pin, GPIO.OUT)         # 서보 핀을 출력 모드로 설정
-        motor = GPIO.PWM(pin, 50)         # 50Hz의 PWM 신호 생성
-        motor.start(0)                    # PWM 신호 시작
-        servo_motors[pin] = motor         # 서보모터 객체를 딕셔너리에 저장
+def servo_command(mt_num, mv_type):
+    '''
+    mt_num: PLASTIC_MOTOR, WASTE_MOTOR, PAPER_MOTOR
+    mv_type: UP, DOWN
+    '''
+    command = str(mv_type) + str(mt_num) + '\n'
+    py_serial.write(command.encode())
+    time.sleep(0.1)
 
-# 서보모터 위치 설정 함수 (각 서보모터의 각도를 설정)
-def setServoPos(servo, degree):
-    duty = SERVO_MIN_DUTY + (degree * (SERVO_MAX_DUTY - SERVO_MIN_DUTY) / 180.0) # 각도에 따라 듀티 값 계산
-    servo.ChangeDutyCycle(duty)  # 서보모터 듀티 설정하여 각도 조정
-
-# 서보모터 작동 함수 (카테고리에 따라 서보모터를 작동시킴)
-def operate_servo(category):
-    servo_type = CATEGORY_MAP.get(category)     # 카테고리에 해당하는 서보 타입 가져오기
-    pin = SERVO_PIN_MAP.get(servo_type)         # 서보 타입에 해당하는 핀 번호 가져오기
-    if pin in servo_motors:
-        print(f"Operating servo for {category} ({servo_type}) on pin {pin}")
-        
-        # 서보모터를 90도로 이동
-        setServoPos(servo_motors[pin], 90)
-
-        # 10초 후 서보모터를 0도로 복귀
-        root.after(10000, lambda: setServoPos(servo_motors[pin], 0))
-
-# 서보모터 열기 및 닫기 함수 (특정 핀의 서보모터를 열고 닫음)
-def open_servo(pin):
-    if pin in servo_motors:
-        setServoPos(servo_motors[pin], 90)   # 지정된 핀의 서보모터를 90도로 이동
-
-def close_servo(pin):
-    if pin in servo_motors:
-        setServoPos(servo_motors[pin], 0)    # 지정된 핀의 서보모터를 0도로 복귀
+    if py_serial.readable():
+        response = py_serial.readline()
+        print(response[:len(response)-1].decode())
 
 # 카메라 클래스 정의 (카메라 초기화 및 프레임 캡처 기능 포함)
 class Camera:
@@ -291,8 +266,8 @@ def on_button_click():
                 adviceMsgList.append(advice_mapping[label]) # 라벨에 따른 분리수거 메시지 수집
 
                 servo_type = CATEGORY_MAP.get(label)    # 쓰레기 라벨에 해당하는 서보 타입
-                pin = SERVO_PIN_MAP.get(servo_type)     # 서보 타입에 해당하는 핀 번호
-                currentServoPinList.append(pin)         # 현재 서보 핀 리스트에 추가
+                servo_seq = SERVO_SEQ.get(servo_type)     # 서보 타입에 해당하는 핀 번호
+                currentServoPinList.append(servo_seq)         # 현재 서보 핀 리스트에 추가
             
             adviceMsgList = set(adviceMsgList)          # 중복 제거하여 고유 메시지만 유지
             adviceMsgList = list(adviceMsgList)
@@ -304,12 +279,12 @@ def on_button_click():
             update_message(full_message)                # 메시지 UI 업데이트
 
             # 각 핀의 서보모터를 열기
-            for pin in currentServoPinList:
-                open_servo(pin)
+            for seq in currentServoPinList:
+                servo_command(seq, UP)                  # 서보모터 열기
 
     else:
-        for pin in currentServoPinList:                 # 이미 열린 상태일 경우 모든 서보모터를 닫기
-            close_servo(pin)
+        for seq in currentServoPinList:                 # 이미 열린 상태일 경우 모든 서보모터를 닫기
+            servo_command(seq, DOWN)                     # 서보모터 닫기
         currentServoPinList = []                        # 현재 서보 핀 리스트 초기화
         update_message("버튼을 누르면 감지된 쓰레기통 뚜껑이 열립니다.") # 기본 메시지 출력
         isFreeze = 0                                    # 프레임 동결 상태 해제
@@ -319,14 +294,11 @@ def update_message(text):
     global message_label
     message_label.config(text=text)                      # 라벨 텍스트 설정
 
-
 # 메인 함수
-if __name__ == '__main__':
+def main():
     camera = Camera()                                   # 카메라 객체 생성
 
     try:
-        initialize_servos()                             # 서보모터 초기화
-        
         camera.camera_open()                            # 카메라 열기
 
         root = Tk()                                     # Tkinter 창 생성
@@ -363,9 +335,8 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(f"Error: {e}")                            # 예외 발생 시 오류 메시지 출력
-
     finally:
-        for motor in servo_motors.values():             # 서보모터 종료
-            motor.stop()
-        GPIO.cleanup()                                  # GPIO 클린업
         camera.camera_close()                           # 카메라 종료
+
+if __name__ == '__main__':
+    main()                                              # 메인 함수 실행

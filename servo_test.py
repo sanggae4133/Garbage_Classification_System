@@ -13,8 +13,10 @@ py_serial = serial.Serial(
 )
 
 def command(mt_num, mv_type):
-    # mt_num: 0, 1, 2
-    # mv_type: 0, 1
+    '''
+    mt_num: PLASTIC_MOTOR, WASTE_MOTOR, PAPER_MOTOR
+    mv_type: UP, DOWN
+    '''
     command = str(mv_type) + str(mt_num) + '\n'
     py_serial.write(command.encode())
     time.sleep(0.1)
@@ -27,6 +29,8 @@ while True:
     commend = input()
     py_serial.write((commend + '\n').encode())
     time.sleep(0.1)
+
+    command(PLASTIC_MOTOR, UP)
 
     if py_serial.readable():
         response = py_serial.readline()
