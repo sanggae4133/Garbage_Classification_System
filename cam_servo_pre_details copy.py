@@ -294,8 +294,8 @@ def update_message(text):
     global message_label
     message_label.config(text=text)                      # 라벨 텍스트 설정
 
-# 메인 함수
-def main():
+    
+if __name__ == '__main__':
     camera = Camera()                                   # 카메라 객체 생성
 
     try:
@@ -337,6 +337,3 @@ def main():
         print(f"Error: {e}")                            # 예외 발생 시 오류 메시지 출력
     finally:
         camera.camera_close()                           # 카메라 종료
-
-if __name__ == '__main__':
-    main()                                              # 메인 함수 실행
